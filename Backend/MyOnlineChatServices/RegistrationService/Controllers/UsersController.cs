@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RegistrationService.BL;
 using RegistrationService.Contracts;
 using RegistrationService.DataAccess;
+using RegistrationService.DataAccess.Repositories;
 using RegistrationService.Models;
 
 namespace RegistrationService.Controllers
@@ -10,23 +13,45 @@ namespace RegistrationService.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private readonly UsersDbContext _dbContext;
+        private readonly string _staticFilesPath = 
+            Path.Combine(Directory.GetCurrentDirectory(), "StaticFiles/UserImages");
 
-        public UsersController(UsersDbContext dbContext) 
+        //private readonly UsersDbContext _dbContext;
+        private readonly ImageService _imageService;
+        private readonly UserRepository _userRepository;
+
+        public UsersController(/*UsersDbContext dbContext,*/ ImageService imageService, UserRepository userRepository) 
         {
-            _dbContext = dbContext;
+            //_dbContext = dbContext;
+            _imageService = imageService;
+            _userRepository = userRepository;
         }
 
-        [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] CreateUserRequest request, CancellationToken ct)
+        [HttpPost("register")]
+        public async Task<ActionResult> RegisterUser(RegisterUserRequest request)
         {
-            
-            var user = new User(request.Nickname, request.Password);
+            var userExists = await _userRepository.GetUserByNickname(request.Nickname);
 
-            await _dbContext.Users.AddAsync(user, ct);
-            await _dbContext.SaveChangesAsync(ct);
+            if (userExists != null)
+            {
+                return BadRequest("Пользователь с таким именем существует!");
+            }
 
-            return Ok();
+            var imageResult = await _imageService.CreateImage(request.UserImage, _staticFilesPath);
+
+            if (imageResult.IsFailure)
+            {
+                return BadRequest(imageResult.Error);
+            }
+
+            var newUser = Models.User.Create(Guid.NewGuid(), request.Nickname, request.Password, DateTime.Now, imageResult.Value);
+
+            if (newUser.IsFailure)
+            {
+                return BadRequest(newUser.Error);
+            }
+
+            return Ok(newUser);
         }
     }
 }
