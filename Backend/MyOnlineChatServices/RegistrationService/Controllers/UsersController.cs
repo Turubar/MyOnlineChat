@@ -1,7 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RegistrationService.BL;
+using RegistrationService.Application;
 using RegistrationService.Contracts;
 using RegistrationService.DataAccess;
 using RegistrationService.DataAccess.Repositories;
@@ -13,43 +13,36 @@ namespace RegistrationService.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private readonly string _staticFilesPath = 
-            Path.Combine(Directory.GetCurrentDirectory(), "StaticFiles/UserImages");
+        private readonly IUserValidationService _validationService;
+        private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly IUserRepository _userRepository;
 
-        //private readonly UsersDbContext _dbContext;
-        private readonly ImageService _imageService;
-        private readonly UserRepository _userRepository;
-
-        public UsersController(/*UsersDbContext dbContext,*/ ImageService imageService, UserRepository userRepository) 
+        public UsersController(IUserValidationService validationService, IPasswordHasher<User> passwordHasher, IUserRepository userRepository) 
         {
-            //_dbContext = dbContext;
-            _imageService = imageService;
+            _validationService = validationService;
+            _passwordHasher = passwordHasher;
             _userRepository = userRepository;
         }
 
         [HttpPost("register")]
         public async Task<ActionResult> RegisterUser(RegisterUserRequest request)
         {
-            var userExists = await _userRepository.GetUserByNickname(request.Nickname);
+            if (_validationService.ValidateUser(request.Nickname, request.Password).IsFailure)
+            {
+                return BadRequest("Некорректный ввод данных!");
+            }
 
-            if (userExists != null)
+            var existsUser = await _userRepository.GetUserByNickname(request.Nickname);
+
+            if (existsUser != null)
             {
                 return BadRequest("Пользователь с таким именем существует!");
             }
 
-            var imageResult = await _imageService.CreateImage(request.UserImage, _staticFilesPath);
+            var newUser = new User(Guid.NewGuid(), request.Nickname, request.Password, DateTime.UtcNow);
+            newUser.Password = _passwordHasher.HashPassword(newUser, newUser.Password);
 
-            if (imageResult.IsFailure)
-            {
-                return BadRequest(imageResult.Error);
-            }
-
-            var newUser = Models.User.Create(Guid.NewGuid(), request.Nickname, request.Password, DateTime.Now, imageResult.Value);
-
-            if (newUser.IsFailure)
-            {
-                return BadRequest(newUser.Error);
-            }
+            _userRepository.AddUser(newUser);
 
             return Ok(newUser);
         }

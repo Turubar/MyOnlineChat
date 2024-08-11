@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
+using RegistrationService.Application;
 using RegistrationService.Models;
 
 namespace RegistrationService.DataAccess.Repositories
@@ -13,10 +14,10 @@ namespace RegistrationService.DataAccess.Repositories
             _context = context;
         }
 
-        public async Task<Result<User>> AddUser(User user)
+        public async void AddUser(User user)
         {
-            _context.Users.Add(user);
-            _context.SaveChanges();
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<User?> GetUserByNickname(string nickname)

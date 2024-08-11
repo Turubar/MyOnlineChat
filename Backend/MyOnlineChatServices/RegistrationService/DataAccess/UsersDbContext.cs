@@ -16,7 +16,7 @@ namespace RegistrationService.DataAccess
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql(_configuration.GetConnectionString(""));
+            optionsBuilder.UseNpgsql(_configuration.GetConnectionString("Database"));
         }
     }
 }
