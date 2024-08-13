@@ -9,7 +9,7 @@ namespace RegistrationService.Application
     {
         private readonly UsersDbContext _dbContext;
 
-        public const int MIN_NICKNAME_LENGTH = 6;
+        public const int MIN_NICKNAME_LENGTH = 4;
         public const int MAX_NICKNAME_LENGTH = 20;
 
         public const int MIN_PASSWORD_LENGTH = 8;

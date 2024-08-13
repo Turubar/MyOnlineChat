@@ -13,8 +13,19 @@ builder.Services.AddScoped<IUserValidationService, UserValidationService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5173");
+        policy.AllowAnyHeader();
+        policy.AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
+app.UseCors();
 app.MapControllers();
 
 app.Run();
