@@ -19,7 +19,7 @@ body{
 .container{
     background-color: #fff;
     border-radius: 30px;
-    box-shadow: 0 5px 15px rgba(115, 6, 119, 0.274);
+    box-shadow: 0px 0px 15px black;
     position: relative;
     overflow: hidden;
     width: 768px;
@@ -35,7 +35,8 @@ body{
 }
 
 .container span{
-    font-size: 12px;
+    font-size: 14px;
+    text-align: center;
 }
 
 .container a{
@@ -46,7 +47,7 @@ body{
 }
 
 .container button{
-    background-color: #bd60f7;
+    background-color: #27a7e7;
     color: #fff;
     font-size: 12px;
     padding: 10px 45px;
@@ -159,7 +160,7 @@ body{
 }
 
 .toggle{
-    background-color: #bd60f7;
+    background-color: #27a7e7;
     height: 100%;
     color: #fff;
     position: relative;
@@ -207,5 +208,9 @@ body{
 }
 
 .input-not-valid {
-    border: 2px solid #bd60f7;
+    border: 2px solid #27a7e7;
+}
+
+h1 {
+    font-size: 18px;
 }

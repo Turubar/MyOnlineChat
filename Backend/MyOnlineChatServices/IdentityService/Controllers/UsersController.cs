@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using IdentityService.Contracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using RegistrationService.Application;
@@ -29,14 +30,14 @@ namespace RegistrationService.Controllers
         {
             if (_validationService.ValidateUser(request.Nickname, request.Password).IsFailure)
             {
-                return BadRequest("Некорректный ввод данных!");
+                return Ok(new RegisterUserResponse(false, "Некорректный ввод данных!"));
             }
 
             var existsUser = await _userRepository.GetUserByNickname(request.Nickname);
 
             if (existsUser != null)
             {
-                return BadRequest("Пользователь с таким именем существует!");
+                return Ok(new RegisterUserResponse(false, "Этот никнейм занят!"));
             }
 
             var newUser = new User(Guid.NewGuid(), request.Nickname, request.Password, DateTime.UtcNow);
@@ -44,7 +45,7 @@ namespace RegistrationService.Controllers
 
             _userRepository.AddUser(newUser);
 
-            return Ok(newUser);
+            return Ok(new RegisterUserResponse(true, "Успешная регистрация!"));
         }
     }
 }
