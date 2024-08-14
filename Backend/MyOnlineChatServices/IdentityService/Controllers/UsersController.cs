@@ -1,5 +1,4 @@
 ﻿using CSharpFunctionalExtensions;
-using IdentityService.Contracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using RegistrationService.Application;
@@ -28,24 +27,32 @@ namespace RegistrationService.Controllers
         [HttpPost("register")]
         public async Task<ActionResult> RegisterUser(RegisterUserRequest request)
         {
-            if (_validationService.ValidateUser(request.Nickname, request.Password).IsFailure)
+            try
             {
-                return Ok(new RegisterUserResponse(false, "Некорректный ввод данных!"));
+                if (_validationService.ValidateUser(request.Nickname, request.Password).IsFailure)
+                {
+                    return BadRequest(new { message = "Некорректный ввод данных!" });
+                }
+
+                var existsUser = await _userRepository.GetUserByNickname(request.Nickname);
+
+                if (existsUser != null)
+                {
+                    return BadRequest(new { message = "Этот никнейм занят!" });
+                }
+
+                var newUser = new User(Guid.NewGuid(), request.Nickname, request.Password, DateTime.UtcNow);
+                newUser.Password = _passwordHasher.HashPassword(newUser, newUser.Password);
+
+                _userRepository.AddUser(newUser);
+
+                return Ok(new { message = "Успешная регистрация!" });
             }
-
-            var existsUser = await _userRepository.GetUserByNickname(request.Nickname);
-
-            if (existsUser != null)
+            catch (Exception ex)
             {
-                return Ok(new RegisterUserResponse(false, "Этот никнейм занят!"));
+
+
             }
-
-            var newUser = new User(Guid.NewGuid(), request.Nickname, request.Password, DateTime.UtcNow);
-            newUser.Password = _passwordHasher.HashPassword(newUser, newUser.Password);
-
-            _userRepository.AddUser(newUser);
-
-            return Ok(new RegisterUserResponse(true, "Успешная регистрация!"));
         }
     }
 }

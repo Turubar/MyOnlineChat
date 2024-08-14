@@ -39,25 +39,18 @@ export default function RegisterForm({setToggle}) {
         try {
             const response = await axios.post('http://localhost:5255/api/users/register', {Nickname: nickname, Password: password});
             
-            const result = response.data;
+            console.log(response);
 
-            if (result["isSuccess"]) {
-                ShowMessage(result["message"], "#0bbf0b");
+           /*  setTimeout(() => {
+                document.getElementById("nicknameRegister").value = "";
+                document.getElementById("passwordRegister").value = "";
+                document.getElementById("secondPasswordRegister").value = "";
 
-                setTimeout(() => {
-                    document.getElementById("nicknameRegister").value = "";
-                    document.getElementById("passwordRegister").value = "";
-                    document.getElementById("secondPasswordRegister").value = "";
-
-                    setToggle(false);
-                }, 3000)
-            }
-            else {
-                ShowMessage(result["message"], "red");
-            }
-
-        } catch {
-            ShowMessage("Что-то пошло не так, повторите попытку позже!", "red");
+                setToggle(false);
+            }, 3000) */
+        } 
+        catch (error) {
+            console.log(error);
         }
     }
 
